@@ -1,0 +1,33 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "your@email.com",
+                "Name": "Your Name"
+            }
+        ],
+        "BugReportUrl": "https://bugs.kde.org/enter_bug.cgi?product=desktopnotes",
+        "Description": "Displays text and markdown files as desktop widgets.",
+        "Icon": "document-edit",
+        "Id": "org.kde.desktopnotes",
+        "License": "GPL-2.0+",
+        "Name": "Desktop Note",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "1.0",
+        "Website": "https://kde.org/plasma-desktop/"
+    },
+    "X-Plasma-API": "6.0",
+    "X-Plasma-MainScript": "declarative",
+    "X-Plasma-Provides": ["Plasma/Applet"],
+    "X-KDE-PluginInfo-Name": "plasma_applet_org_kde_desktopnotes",
+    "X-KDE-ServiceTypes": [
+        "Plasma/Applet"
+    ],
+    "X-Plasma-ContainmentCategories": [
+        "panel",
+        "desktop"
+    ]
+}
