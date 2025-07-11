@@ -1,0 +1,143 @@
+# Manual QA Checklist for Desktop Notes Plasmoid
+
+## I. Installation and Basic Setup (using `how-to-setup.txt`)
+- [ ] Prerequisities installed correctly.
+- [ ] `cmake ..` runs without errors.
+- [ ] `make` runs without errors.
+- [ ] `sudo make install` (or local `make install`) completes without errors.
+- [ ] Plasmoid "Desktop Notes" appears in Plasma's "Add Widgets" list after installation and Plasma refresh (logout/login or kbuildsycoca).
+
+## II. Note Widget Creation & Initial State
+- [ ] Adding a new "Desktop Notes" widget to the desktop creates a new instance.
+- [ ] New widget initially displays placeholder text "Select File..." (font size 22pt).
+- [ ] New widget has `filepath` as `null` (verify via DB or behavior).
+- [ ] New widget does not automatically open a file selection dialog.
+- [ ] A new entry for the widget is created in `~/.local/share/desktop-notes/notes.db`.
+- [ ] The widget's `noteId` is correctly stored in its instance configuration (e.g., `~/.config/plasma-org.kde.plasma.desktop-appletsrc` or similar, check for `org.kde.plasma.desktopnotes` entries).
+
+## III. Quick Left-Click Interaction
+- [ ] **With `filepath` null (placeholder showing):**
+    - [ ] Single left-click on the widget opens a file selection dialog.
+    - [ ] Dialog allows selecting `.txt` and `.md` files.
+    - [ ] Dialog allows typing a new filename.
+    - [ ] Selecting an existing file:
+        - [ ] Widget updates to show file content.
+        - [ ] `filepath` property in DB is updated.
+        - [ ] Placeholder text disappears.
+    - [ ] Typing a new filename and confirming:
+        - [ ] A new empty file is created at the specified path.
+        - [ ] Widget updates (shows empty content or filename).
+        - [ ] `filepath` property in DB is updated.
+    - [ ] Cancelling the file dialog: No changes to the widget or its `filepath`.
+- [ ] **With `filepath` set:**
+    - [ ] Single left-click executes a command to open the file in an external editor (e.g., `xdg-open "$filepath"` should open with default handler).
+
+## IV. Right-Click Context Menu
+- [ ] Right-clicking on a Note Widget opens a context menu.
+- [ ] Menu items appear in the correct order: `Select file`, `Drag/Resize`, `Styling`, ---, `Add New Note`, `Open Notes`, ---, `Hide`, `Delete`.
+
+### IV.A. Context Menu - `Select file`
+- [ ] (Covered by III. Quick Left-Click - `filepath` null, but re-test via menu)
+- [ ] Selecting "Select file" opens the file dialog.
+- [ ] Behaves as specified in section III for selecting/creating files.
+
+### IV.B. Context Menu - `Drag/Resize`
+- [ ] Selecting "Drag/Resize" enables the mode.
+- [ ] A 3px yellow border appears around the widget.
+- [ ] Mouse cursor changes (TODO: Cursors not fully implemented, check if any change occurs).
+    - [ ] Over main body: (move/grab cursor expected)
+    - [ ] Over corners/edges: (resize cursors expected)
+- [ ] **Performing Actions (Placeholders - check console logs if possible, no visual change expected for actual move/resize)**
+    - [ ] Attempting to drag (left-click & hold on body): (console log for "Mouse pressed/released in Drag/Resize mode")
+    - [ ] Attempting to resize (left-click & hold on corner/edge): (console log)
+- [ ] Selecting "Exit Drag/Resize" (menu item text should change) deactivates the mode.
+- [ ] Yellow border disappears.
+- [ ] (Deactivation by clicking outside is not implemented - verify this does NOT deactivate).
+
+### IV.C. Context Menu - `Styling`
+- [ ] Selecting "Styling" opens the Styling Dialog.
+- [ ] Dialog title is "Style Note".
+- [ ] Dialog is modal.
+- [ ] **Controls & Real-time Preview:**
+    - [ ] **Transparency Slider:**
+        - [ ] Slider reflects current transparency.
+        - [ ] Changing slider instantly updates widget background transparency on desktop.
+        - [ ] Value label next to slider updates.
+    - [ ] **Background Color Picker:** (Placeholder: cycles colors)
+        - [ ] Picker reflects current background color (approximately).
+        - [ ] Clicking picker changes color; widget background updates instantly.
+    - [ ] **Margin Slider/Input:**
+        - [ ] SpinBox reflects current margin.
+        - [ ] Changing value instantly updates padding inside the widget.
+- [ ] **Dialog Buttons:**
+    - [ ] **Ok:** Applies all current (already previewed) settings and closes dialog. Changes persist after re-adding widget (if applicable).
+    - [ ] **Cancel:** Reverts all styling changes made *during this dialog session* back to what they were when dialog opened. Widget appearance reverts. Closes dialog. Changes do not persist.
+
+### IV.D. Context Menu - `Add New Note`
+- [ ] Selecting "Add New Note" (Placeholder: check console log for "Action: Add New Note triggered").
+- [ ] (No new widget is expected to be created automatically by this action in current impl).
+
+### IV.E. Context Menu - `Open Notes`
+- [ ] Selecting "Open Notes" opens the "Manage All Notes" view/dialog.
+- [ ] Dialog title is "Manage All Notes".
+- [ ] Dialog is non-modal.
+- [ ] **Display & Columns:**
+    - [ ] Lists all known notes (shown and hidden).
+    - [ ] Columns: `File Path`, `Status`, `Last Modified`.
+    - [ ] `File Path` shows filepath or placeholder.
+    - [ ] `Status` shows "Shown" or "Hidden".
+    - [ ] `Last Modified` shows file's mtime (or N/A).
+- [ ] **Sortable Columns:** (Default QML TableView behavior - check if clicking headers sorts).
+- [ ] **Interaction:**
+    - [ ] Clicking on a "Status" cell (or the text within it) for a note:
+        - [ ] Flips its status in the DB (verify by reopening view or checking DB).
+        - [ ] Status text in the Management View updates.
+        - [ ] If toggled to "Shown":
+            - [ ] If the corresponding widget was hidden, it appears on the desktop.
+            - [ ] If the corresponding widget was already shown, it remains shown.
+            - [ ] (Limitation: If widget was not on desktop, this might not create it anew, check behavior).
+        - [ ] If toggled to "Hidden":
+            - [ ] If the corresponding widget was shown, it disappears from the desktop.
+            - [ ] If the corresponding widget was already hidden, it remains hidden.
+
+### IV.F. Context Menu - `Hide`
+- [ ] Selecting "Hide" on a visible widget:
+    - [ ] Widget becomes invisible on the desktop.
+    - [ ] `status` in DB for this note is set to "hidden".
+    - [ ] Data (filepath, style) is retained (verify by making it "Shown" again via Management View).
+
+### IV.G. Context Menu - `Delete`
+- [ ] Selecting "Delete" on a widget:
+    - [ ] Widget is removed from the desktop.
+    - [ ] The note's record is removed from the database.
+    - [ ] The actual `.txt` or `.md` file (if any) is NOT deleted from the filesystem.
+
+## V. File Handling & Display
+- [ ] Widget correctly displays content of `.txt` files.
+- [ ] Widget correctly displays content of `.md` files (as raw text, no special rendering expected).
+- [ ] Display is read-only (cannot type into the widget's text area).
+- [ ] If a linked file is deleted externally, widget shows "File not found" (or similar) after a reload/refresh event (e.g. re-adding widget, or if there's a file watcher - currently no watcher).
+- [ ] If a linked filepath is invalid from the start, widget shows "File not found" or placeholder.
+
+## VI. Data Persistence & Configuration
+- [ ] **Note Data Persistence**:
+    - [ ] All note properties (`id`, `status`, `filepath`, `position` (if drag/resize worked), `size` (if drag/resize worked), `style`) are saved in `~/.local/share/desktop-notes/notes.db`.
+    - [ ] Changes to filepath, status (hide/show), style persist after:
+        - [ ] Closing and reopening Management View.
+        - [ ] Hiding and showing the widget.
+        - [ ] Removing and re-adding the same widget (it should pick up its old `noteId` from instance config).
+        - [ ] Plasma logout/login.
+- [ ] **Instance Configuration Persistence**:
+    - [ ] Each widget instance on the desktop maintains its link to its specific note in the DB across sessions. (Verify by having multiple distinct notes, logout/login, ensure they reappear correctly). This relies on `noteId` being saved in Plasma's applet config.
+
+## VII. `how-to-setup.txt`
+- [ ] Instructions are clear and seem correct based on `CMakeLists.txt`.
+- [ ] Mentions prerequisites.
+- [ ] Covers build and installation steps.
+- [ ] Briefly mentions usage and troubleshooting.
+
+## VIII. General Behavior
+- [ ] No obvious crashes or freezes when interacting with implemented features.
+- [ ] Console output (if viewable during testing) matches expected debug messages.
+- [ ] Interaction feels logical for the implemented parts.
+```
