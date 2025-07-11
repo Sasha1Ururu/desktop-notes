@@ -1,0 +1,116 @@
+# Manual QA Checklist for Desktop Notes Applet
+
+## 1. Installation and Basic Widget Presence
+- [ ] Compile the project successfully.
+- [ ] Install the applet using CMake install step.
+- [ ] Restart Plasma shell (`plasmashell --replace` or logout/login).
+- [ ] Find "Desktop Note" in Plasma's "Add Widgets" dialog.
+- [ ] Add a new "Desktop Note" widget to the desktop.
+- [ ] Verify the new widget appears with placeholder text "Select File...".
+- [ ] Verify `~/.config/desktop-notes/settings.ini` is created (if global settings were planned, though not explicitly used yet).
+- [ ] Verify `~/.local/share/desktop-notes/notes.db` is created.
+- [ ] Verify a new note entry exists in the `notes.db` for the new widget.
+
+## 2. Note Widget Creation (Alternative)
+- [ ] Right-click on an existing Note Widget.
+- [ ] Select "Add New Note" from the context menu.
+- [ ] Verify a new "pending_placement" note is created in `notes.db`.
+- [ ] Manually add another "Desktop Note" widget from Plasma's "Add Widgets".
+- [ ] Verify this second widget adopts the "pending_placement" note (shows its content, if any, or placeholder, and has the pre-calculated position/size from the DB).
+- [ ] Verify the adopted note's status in `notes.db` is updated from "pending_placement" to "shown".
+
+## 3. File Selection and Display
+- [ ] Quick left-click on a new widget (showing "Select File...").
+- [ ] Verify the Plasma "Select File" dialog opens.
+- [ ] Navigate and select an existing `.txt` file.
+- [ ] Verify the widget displays the content of the `.txt` file.
+- [ ] Right-click -> "Select file". Select an existing `.md` file.
+- [ ] Verify the widget displays the rendered content of the `.md` file (basic Markdown: headings, bold, italics, lists).
+- [ ] Right-click -> "Select file". In the dialog, type a new filename (e.g., `new_test_note.txt`) and confirm.
+- [ ] Verify the new file is created on the filesystem (empty).
+- [ ] Verify the widget updates its `filepath` and displays placeholder or empty content for the new file.
+- [ ] Verify the `filepath` is updated in `notes.db`.
+
+## 4. Quick Left-click (Open in Editor)
+- [ ] On a widget with a file selected, quick left-click it.
+- [ ] Verify the file opens in the default editor (`konsole -e nvim $filepath`).
+- [ ] (Future test if editor is configurable: Change editor command and test again).
+
+## 5. Drag/Resize Mode
+- [ ] Right-click on a widget -> "Drag/Resize".
+- [ ] Verify a 3px yellow border appears around the widget.
+- [ ] Hover mouse over the widget body: Verify cursor changes to "move" (SizeAll).
+- [ ] Hover mouse over edges: Verify cursor changes to E-W or N-S resize arrows.
+- [ ] Hover mouse over corners: Verify cursor changes to diagonal resize arrows.
+- [ ] Left-click and drag widget body: Verify the widget moves.
+- [ ] Left-click and drag widget edges/corners: Verify the widget resizes.
+- [ ] After moving/resizing, right-click -> "Drag/Resize" again (or "Exit Drag/Resize Mode").
+- [ ] Verify the yellow border disappears and cursors return to normal.
+- [ ] Verify the new position and size are saved in `notes.db` for this note.
+- [ ] Test deactivation by clicking outside (if focus-out deactivation is implemented).
+
+## 6. Styling Dialog
+- [ ] Right-click on a widget -> "Styling...".
+- [ ] Verify the Styling Dialog opens.
+- [ ] **Transparency:**
+    - [ ] Adjust the transparency slider. Verify the target Note Widget on the desktop updates its transparency in real-time.
+    - [ ] Click "Ok". Verify transparency is applied and saved (persists after hiding/showing or session restart).
+- [ ] Re-open Styling Dialog. Change transparency. Click "Cancel". Verify transparency reverts to the state before dialog was opened.
+- [ ] **Background Color:**
+    - [ ] Click "Choose Color...". Select a new color.
+    - [ ] Verify the color preview in the dialog updates.
+    - [ ] Verify the target Note Widget on the desktop updates its background color in real-time.
+    - [ ] Click "Ok". Verify background color is applied and saved.
+- [ ] Re-open Styling Dialog. Change background color. Click "Cancel". Verify color reverts.
+- [ ] **Margin:**
+    - [ ] Adjust the margin slider/spinbox.
+    - [ ] Verify the target Note Widget on the desktop updates its internal text margin in real-time.
+    - [ ] Click "Ok". Verify margin is applied and saved.
+- [ ] Re-open Styling Dialog. Change margin. Click "Cancel". Verify margin reverts.
+
+## 7. Hide/Delete Note Widget
+- [ ] **Hide:**
+    - [ ] Right-click on a widget -> "Hide".
+    - [ ] Verify the widget becomes invisible.
+    - [ ] Verify its status in `notes.db` is set to "hidden".
+- [ ] **Delete:**
+    - [ ] Right-click on a widget -> "Delete".
+    - [ ] Verify the widget is removed from the desktop.
+    - [ ] Verify its entry is removed from `notes.db`.
+    - [ ] Verify the actual file on the filesystem (if one was associated) is NOT deleted.
+
+## 8. "Open Notes" Management View
+- [ ] Right-click on any widget -> "Open Notes...".
+- [ ] Verify the "Manage All Notes" dialog opens.
+- [ ] Verify the table lists all known notes (shown and hidden).
+- [ ] Verify "File Path" and "Status" columns are displayed.
+- [ ] Test column sorting by clicking headers.
+- [ ] **Toggle Status:**
+    - [ ] Double-click the "Status" cell of a "shown" note.
+    - [ ] Verify the status in the table changes to "hidden".
+    - [ ] Verify the status in `notes.db` is updated to "hidden".
+    - [ ] **(Known Limitation for QA):** Verify if the corresponding widget on the desktop actually hides. (This part was marked as TBD for full IPC implementation).
+    - [ ] Double-click the "Status" cell of a "hidden" note.
+    - [ ] Verify status in table changes to "shown".
+    - [ ] Verify status in `notes.db` is updated to "shown".
+    - [ ] **(Known Limitation for QA):** Verify if the corresponding widget on the desktop actually appears.
+- [ ] Click "Refresh List". Verify the table updates if any external changes were made to DB (manual test).
+- [ ] Click "Close". Verify the dialog closes.
+
+## 9. Persistence Across Sessions
+- [ ] Configure several notes with different files, styles, positions, and sizes. Some shown, some hidden.
+- [ ] Log out of Plasma session and log back in (or `plasmashell --replace`).
+- [ ] Verify all "shown" notes reappear in their correct positions, sizes, styles, and with correct content.
+- [ ] Verify "hidden" notes do not appear.
+- [ ] Open the "Open Notes" dialog and verify the status of hidden notes is still "hidden".
+- [ ] Make a hidden note "shown" via the "Open Notes" dialog.
+- [ ] **(Known Limitation for QA):** Verify if it appears correctly on the desktop.
+
+## 10. Edge Cases / Error Handling
+- [ ] Attempt to select a very large file. Observe performance.
+- [ ] Attempt to select a file with unusual characters in its path/name.
+- [ ] Attempt to select a file that gets deleted/moved after being loaded. Verify widget shows an error or placeholder.
+- [ ] Rapidly create/delete/modify notes. Observe stability.
+- [ ] If `notes.db` is manually corrupted or deleted, how does the applet behave on next load? (Should ideally recreate or handle gracefully).
+- [ ] Add many widgets to the desktop. Observe performance.
+```
