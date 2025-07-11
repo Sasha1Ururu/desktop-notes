@@ -1,0 +1,32 @@
+[Desktop Entry]
+Name=Desktop Notes
+Comment=Display text and Markdown files on your desktop.
+Icon=accessories-text-editor
+
+Type=Service
+ServiceTypes=Plasma/Applet
+
+# For Python-based Plasmoids:
+X-Plasma-API=pythonscript
+X-Plasma-MainScript=code/main_plasmoid.py
+
+X-KDE-PluginInfo-Author=Desktop Notes AI Developer
+X-KDE-PluginInfo-Name=org.kde.desktopnotes
+X-KDE-PluginInfo-Version=0.1
+X-KDE-PluginInfo-Category=Utilities
+X-KDE-PluginInfo-License=GPL
+X-KDE-PluginInfo-EnabledByDefault=true
+X-Plasma-HasConfigurationInterface=false # True if we use KConfig XT for config dialog
+
+# Relevant for Plasma 6, indicates the plasmoid is QML based and uses a specific entry point.
+# If purely Python and not using a QML wrapper:
+# X-Plasma-API=pythonscript might be sufficient, but often Python Applets also have a QML part.
+# For a pure Python Applet without QML for its main structure:
+# The structure often involves a Python file that defines a class inheriting from Plasma.Applet.
+# Let's assume a structure that would be common for Python plasmoids.
+# The main script will be responsible for setting up the plasmoid.
+# Some Python plasmoids use a thin QML wrapper to load the Python part.
+# e.g. main.qml loads a Python plugin.
+# For now, focusing on the Python side.
+# The X-Plasma-MainScript points to the entry Python file.
+# The actual Python environment within Plasma provides the Plasma bindings.
