@@ -1,0 +1,24 @@
+{
+    "KPackageStructure": "Plasma/Applet",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Email": "jules@example.com",
+                "Name": "Jules"
+            }
+        ],
+        "Category": "Utilities",
+        "Description": "Desktop Notes Plasmoid for displaying text and markdown files.",
+        "Icon": "text-plain",
+        "Id": "org.kde.plasma.desktopnotes",
+        "Name": "Desktop Notes",
+        "ServiceTypes": [
+            "Plasma/Applet"
+        ],
+        "Version": "0.1",
+        "Website": ""
+    },
+    "X-Plasma-API": "python",
+    "X-Plasma-MainScript": "contents/code/main.py",
+    "X-Plasma-RootPath": "org.kde.plasma.desktopnotes"
+}
